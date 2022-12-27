@@ -98,9 +98,6 @@ char **Horizontal_LR(int x, int y, char **grid, char *SelectedWord, int index)
         }
         else
         {
-
-            // this shows that word
-            // cannot be placed vertically
             grid[0][0] = '$';
             H_Flag[index] = 2;
             return grid;
@@ -121,9 +118,6 @@ char **Vertical_UD(int x, int y, char **grid, char *SelectedWord, int index)
         }
         else
         {
-
-            // this shows that word
-            // cannot be placed vertically
             grid[0][0] = '$';
             V_Flag[index] = 2;
             if (H_Flag[index] == 2)

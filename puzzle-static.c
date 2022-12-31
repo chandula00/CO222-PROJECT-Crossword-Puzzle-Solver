@@ -1,39 +1,138 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
-#define SIZE_ROW 100
-#define SIZE_COLUMN 100
+typedef struct possible
+{
+    int occurances;
+    int column;
+    int row;
+} possible;
 
-int grid_Height;
-int grid_Width;
-int num_word;
-int V_Flag[50];
-int H_Flag[50];
+void print_puzzle(char grid[100][100], int count)
+{
+    for (int row = 0; row < count; row++)
+    {
+        printf(grid[row]);
+        putchar('\n');
+    }
+}
 
-char **Horizontal_LR(int x, int y, char **grid, char *SelectedWord, int index);
-char **Horizontal_RL(int x, int y, char **grid, char *SelectedWord, int index);
-char **Vertical_UD(int x, int y, char **grid, char *SelectedWord, int index);
-char **Vertical_DU(int x, int y, char **grid, char *SelectedWord, int index);
-int length(char *word);
-int PuzzleSolver(char **grid, char **word, int wordIndex);
-int printgrid(char **grid);
+void fill_horizontal(char grid[100][100], char *word, possible horizontal)
+{
+    int column = horizontal.column;
+    int row = horizontal.row;
+    int i, k = 0;
+    for (i = column; i < column + strlen(word); i++)
+    {
+        grid[row][i] = word[k];
+        k++;
+    }
+}
+
+void fill_vertical(char grid[100][100], char *word, possible vertical)
+{
+    int column = vertical.column;
+    int row = vertical.row;
+    int i, k = 0;
+    for (i = row; i < row + strlen(word); i++)
+    {
+        grid[i][column] = word[k];
+        k++;
+    }
+}
+
+possible check_horizontal(char *word, char grid[100][100], int row_grid)
+{
+    int column, row;
+    int slots_for_word = 0;
+    possible horizontal;
+    horizontal.occurances = 0;
+
+    for (row = 0; row < row_grid; row++)
+    {
+        slots_for_word = 0;
+        for (column = 0; column < strlen(grid[row]); column++)
+        {
+            if (grid[row][column] == '#' || toupper(grid[row][column]) == toupper(word[slots_for_word]))
+            {
+                slots_for_word++;
+            }
+            else
+            {
+                if (slots_for_word == strlen(word))
+                {
+                    horizontal.occurances++;
+                    horizontal.row = row;
+                    horizontal.column = column - strlen(word);
+                }
+                slots_for_word = 0;
+            }
+        }
+        if (slots_for_word == strlen(word))
+        {
+            horizontal.occurances++;
+            horizontal.row = row;
+            horizontal.column = column - strlen(word);
+        }
+    }
+
+    return horizontal;
+}
+
+possible check_vertical(char *word, char grid[100][100], int row_grid)
+{
+    int column, row;
+    int slots_for_word = 0;
+    possible vertical;
+    vertical.occurances = 0;
+
+    for (column = 0; column < strlen(grid[0]); column++)
+    {
+        slots_for_word = 0;
+        for (row = 0; row < row_grid; row++)
+        {
+            if (grid[row][column] == '#' || toupper(grid[row][column]) == toupper(word[slots_for_word]))
+            {
+                slots_for_word++;
+            }
+            else
+            {
+                if (slots_for_word == strlen(word))
+                {
+                    vertical.occurances++;
+                    vertical.column = column;
+                    vertical.row = row - strlen(word);
+                }
+                slots_for_word = 0;
+            }
+        }
+        if (slots_for_word == strlen(word))
+        {
+            vertical.occurances++;
+            vertical.column = column;
+            vertical.row = row - strlen(word);
+        }
+    }
+
+    return vertical;
+}
 
 int main()
 {
+    static char grid[100][100];
+    char word[100][100];
+
     int row_grid = 0;
     int column_grid = 0;
 
     int row_word = 0;
     int column_word = 0;
 
-    char grid[SIZE_ROW][SIZE_COLUMN] = {{}, {}};
-    static char word[SIZE_ROW][SIZE_COLUMN] = {{}, {}};
-
     for (; scanf("%[^\n]%*c", grid[row_grid]) == 1; row_grid++)
     {
-        fflush(stdin);
-        grid_Height = row_grid;
+
         for (column_grid = 0; grid[row_grid][column_grid] != '\0'; column_grid++)
         {
             if (!(grid[row_grid][column_grid] == '#' ||
@@ -45,18 +144,13 @@ int main()
                 exit(0);
             }
         }
-        if (grid_Width < column_grid)
-        {
-            grid_Width = column_grid;
-        }
     }
 
     fflush(stdin);
 
     for (; scanf("%[^\n]%*c", word[row_word]) == 1; row_word++)
     {
-        num_word = row_word;
-        fflush(stdin);
+
         for (column_word = 0; word[row_word][column_word] != '\0'; column_word++)
         {
             if (!((word[row_word][column_word] >= 'A' && word[row_word][column_word] <= 'Z') ||
@@ -67,131 +161,56 @@ int main()
             }
         }
     }
+    
+    int word_count = row_word;
+    int row_count = row_grid;
 
-    PuzzleSolver((char **)grid, (char **)word, 0);
+    int checking = 0;
 
-    for (int i = 0; i < row_grid + 1; i++)
+    while (checking < 3)
     {
-        printf(grid[i]);
-        putchar('\n');
+
+        for (int i = 0; i < word_count; i++)
+        {
+            possible horizontal, vertical;
+
+            horizontal = check_horizontal(word[i], grid, row_count);
+            vertical = check_vertical(word[i], grid, row_count);
+
+            if (horizontal.occurances == 1)
+            {
+                fill_horizontal(grid, word[i], horizontal);
+            }
+            else if (vertical.occurances == 1)
+            {
+                fill_vertical(grid, word[i], vertical);
+            }
+            else if (horizontal.occurances + vertical.occurances == 0)
+            {
+                printf("IMPOSSIBLE\n");
+                return 0;
+            }
+        }
+        checking++;
+    }
+    for (int i = 0; i < word_count; i++)
+    {
+        possible horizontal, vertical;
+
+        horizontal = check_horizontal(word[i], grid, row_count);
+        vertical = check_vertical(word[i], grid, row_count);
+
+        if (horizontal.occurances > 0)
+        {
+            fill_horizontal(grid, word[i], horizontal);
+        }
+        else if (vertical.occurances > 0)
+        {
+            fill_vertical(grid, word[i], vertical);
+        }
     }
 
-    for (int i = 0; i < row_word + 1; i++)
-    {
-        printf(word[i]);
-        putchar('\n');
-    }
+    print_puzzle(grid, row_count);
 
     return 0;
-}
-
-char **Horizontal_LR(int x, int y, char **grid, char *SelectedWord, int index)
-{
-    int n = length((char *)SelectedWord);
-    printf("NOW in horizontal\n");
-    for (int i = 0; i < n; i++)
-    {
-        if (grid[x + i][y] == '#' ||
-            grid[x + i][y] == SelectedWord[i])
-        {
-            grid[x + i][y] = SelectedWord[i];
-        }
-        else
-        {
-            grid[0][0] = '$';
-            H_Flag[index] = 2;
-            return grid;
-        }
-    }
-    return grid;
-}
-
-char **Vertical_UD(int x, int y, char **grid, char *SelectedWord, int index)
-{
-    int n = length((char *)SelectedWord);
-    for (int i = 0; i < n; i++)
-    {
-        if (grid[x][y + i] == '#' ||
-            grid[x][y + i] == SelectedWord[i])
-        {
-            grid[x][y + i] = SelectedWord[i];
-        }
-        else
-        {
-            grid[0][0] = '$';
-            V_Flag[index] = 2;
-            if (H_Flag[index] == 2)
-            {
-                printf("IMPOSSIBLE");
-                exit(0);
-            }
-            return grid;
-        }
-    }
-    return grid;
-}
-
-int length(char *word)
-{
-    int length = 0;
-    printf("now in length\n");
-    printf("%s", word[0]);
-    putchar('\n');
-    while (word[length] != '\0')
-    {
-        length++;
-        printf("%d\n", length);
-    }
-    return length;
-}
-
-int PuzzleSolver(char **grid, char **word, int wordIndex)
-{
-    if (wordIndex < num_word)
-    {
-        printf("Now in puzzle solver\n");
-        printf("%s\n", word[wordIndex]);
-        char *SelectedWord = word[wordIndex];
-        int word_Length = length(SelectedWord);
-        printf("%d\n %d\n", word_Length, grid_Height);
-        int StartIndex_Vertical = grid_Height - word_Length;
-        int StartIndex_Horizontal = grid_Width - word_Length;
-
-        for (int row = 0; row < grid_Height; row++)
-        {
-            for (int column = 0; column <= StartIndex_Horizontal; column++)
-            {
-                char **temp_grid = Horizontal_LR(row, column, (char **)grid, (char *)SelectedWord, wordIndex);
-                if (temp_grid[0][0] != '$')
-                {
-                    PuzzleSolver((char **)temp_grid, (char **)word, wordIndex + 1);
-                }
-            }
-        }
-
-        for (int column = 0; column < grid_Width; column++)
-        {
-            for (int row; row <= StartIndex_Vertical; row++)
-            {
-                char **temp_grid = Vertical_UD(row, column, (char **)grid, (char *)SelectedWord, wordIndex);
-                if (temp_grid[0][0] != '$')
-                {
-                    PuzzleSolver((char **)temp_grid, (char **)word, wordIndex + 1);
-                }
-            }
-        }
-    }
-    else
-    {
-        printgrid((char **)grid);
-        return 0;
-    }
-}
-
-int printgrid(char **grid)
-{
-    for (int i = 0; i < grid_Height; i++)
-    {
-        printf(grid[i]);
-    }
 }

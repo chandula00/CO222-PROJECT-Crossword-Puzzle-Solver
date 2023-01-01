@@ -10,7 +10,9 @@ typedef struct possible
     int row;
 } possible;
 
-void print_puzzle(char grid[100][100], int count)
+char grid[100][100];
+
+void print_puzzle(int count)
 {
     for (int row = 0; row < count; row++)
     {
@@ -19,7 +21,7 @@ void print_puzzle(char grid[100][100], int count)
     }
 }
 
-void fill_horizontal(char grid[100][100], char *word, possible horizontal)
+void fill_horizontal(char *word, possible horizontal)
 {
     int column = horizontal.column;
     int row = horizontal.row;
@@ -31,7 +33,7 @@ void fill_horizontal(char grid[100][100], char *word, possible horizontal)
     }
 }
 
-void fill_vertical(char grid[100][100], char *word, possible vertical)
+void fill_vertical(char *word, possible vertical)
 {
     int column = vertical.column;
     int row = vertical.row;
@@ -43,7 +45,7 @@ void fill_vertical(char grid[100][100], char *word, possible vertical)
     }
 }
 
-possible check_horizontal(char *word, char grid[100][100], int row_grid)
+possible check_horizontal(char *word,int row_grid)
 {
     int column, row;
     int slots_for_word = 0;
@@ -81,7 +83,7 @@ possible check_horizontal(char *word, char grid[100][100], int row_grid)
     return horizontal;
 }
 
-possible check_vertical(char *word, char grid[100][100], int row_grid)
+possible check_vertical(char *word, int row_grid)
 {
     int column, row;
     int slots_for_word = 0;
@@ -121,7 +123,6 @@ possible check_vertical(char *word, char grid[100][100], int row_grid)
 
 int main()
 {
-    static char grid[100][100];
     char word[100][100];
 
     int row_grid = 0;
@@ -174,16 +175,16 @@ int main()
         {
             possible horizontal, vertical;
 
-            horizontal = check_horizontal(word[i], grid, row_count);
-            vertical = check_vertical(word[i], grid, row_count);
+            horizontal = check_horizontal(word[i], row_count);
+            vertical = check_vertical(word[i], row_count);
 
             if (horizontal.occurances == 1)
             {
-                fill_horizontal(grid, word[i], horizontal);
+                fill_horizontal(word[i], horizontal);
             }
             else if (vertical.occurances == 1)
             {
-                fill_vertical(grid, word[i], vertical);
+                fill_vertical(word[i], vertical);
             }
             else if (horizontal.occurances + vertical.occurances == 0)
             {
@@ -197,16 +198,16 @@ int main()
     {
         possible horizontal, vertical;
 
-        horizontal = check_horizontal(word[i], grid, row_count);
-        vertical = check_vertical(word[i], grid, row_count);
+        horizontal = check_horizontal(word[i], row_count);
+        vertical = check_vertical(word[i], row_count);
 
         if (horizontal.occurances > 0)
         {
-            fill_horizontal(grid, word[i], horizontal);
+            fill_horizontal(word[i], horizontal);
         }
         else if (vertical.occurances > 0)
         {
-            fill_vertical(grid, word[i], vertical);
+            fill_vertical(word[i], vertical);
         }
     }
 

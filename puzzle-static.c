@@ -16,7 +16,7 @@ Topic       : Crossword Puzzle Solver
 
 /*
 At the initial point we don't know the sizes of the arrays to be created.
-Hence, suggesting an adequate fail value for size
+Hence, suggesting an adequate fine value for size
 */
 #define Size 100
 
